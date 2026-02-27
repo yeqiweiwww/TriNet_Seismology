@@ -1,0 +1,1 @@
+nohup ./dl_inverse.py > ./dl_inverse.log 2>&1 &
