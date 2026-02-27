@@ -1,0 +1,454 @@
+# This is the input file of FORTRAN77 program "qseis06" for calculation of
+# synthetic seismograms based on a layered halfspace earth model.
+#
+# by
+# Rongjiang  Wang <wang@gfz-potsdam.de>
+# GeoForschungsZentrum Potsdam
+# Telegrafenberg, D-14473 Potsdam, Germany
+#
+# Last modified: Potsdam, Nov., 2006
+#
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# If not specified, SI Unit System is used overall!
+#
+# Coordinate systems:
+# cylindrical (z,r,t) with z = downward,
+#                          r = from source outward,
+#                          t = azmuth angle from north to east;
+# cartesian (x,y,z) with   x = north,
+#                          y = east,
+#                          z = downward;
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+#
+#	SOURCE PARAMETERS
+#	=================
+# 1. source depth [km]
+#------------------------------------------------------------------------------
+ 500.0                    |dble: source_depth;
+#------------------------------------------------------------------------------
+#
+#	RECEIVER PARAMETERS
+#	===================
+# 1. receiver depth [km]
+# 2. switch for distance sampling role (1/0 = equidistant/irregular); switch
+#    for unit used (1/0 = km/deg)
+# 3. number of distance samples
+# 4. if equidistant, then start and end trace distance (> 0); else distance
+#    list (please order the receiver distances from small to large)
+# 5. (reduced) time begin [sec] & length of time window [sec], number of time
+#    samples (<= 2*nfmax in qsglobal.h)
+# 6. switch for unit of the following time reduction parameter: 1 = velocity
+#    [km/sec], 0 = slowness [sec/deg]; time reduction parameter
+#------------------------------------------------------------------------------
+ 0.000                 |dble: receiver_depth;
+ 0  0                  |int: sw_equidistant, sw_d_unit;
+ 5                    |int: no_distances;
+ 10.0 15.0 20.0 25.0 30.0             |dble: d_1,d_n; or d_1,d_2, ...(no comments in between!);
+ 0.0  800.0 1024     |dble: t_start,t_window; int: no_t_samples;
+ 0  0.0                |int: sw_t_reduce; dble: t_reduce;
+#------------------------------------------------------------------------------
+#
+#	WAVENUMBER INTEGRATION PARAMETERS
+#	=================================
+# 1. select slowness integration algorithm (0 = suggested for full wave-field
+#    modelling; 1 or 2 = suggested when using a slowness window with narrow
+#    taper range - a technique for suppressing space-domain aliasing);
+# 2. 4 parameters for low and high slowness (Note 1) cut-offs [s/km] with
+#    tapering: 0 < slw1 < slw2 defining cosine taper at the lower end, and 0 <
+#    slw3 < slw4 defining the cosine taper at the higher end. default values
+#    will be used in case of inconsistent input of the cut-offs (possibly with
+#    much more computational effort);
+# 3. parameter for sampling rate of the wavenumber integration (1 = sampled
+#    with the max. spatial Nyquist frequency, 2 = sampled with twice higher
+#    than by the Nyquist, and so on: the larger this parameter, the smaller the
+#    spatial aliasing effects, but also the more computation effort); 
+# 4. the factor for suppressing time domain aliasing (> 0 and <= 1) (Note 2).
+#------------------------------------------------------------------------------
+ 0                                   |int: sw_algorithm;
+ 0.000  0.000  0.000  0.000          |dble: slw(1-4);
+ 1.00                                |dble: sample_rate;
+ 0.1                                |dble: supp_factor;
+#------------------------------------------------------------------------------
+#
+#	        OPTIONS FOR PARTIAL SOLUTIONS
+#       (only applied to the source-site structure)
+#	    ===========================================
+#
+# 1. switch for filtering free surface effects (0 = with free surface, i.e.,
+#    do not select this filter; 1 = without free surface; 2 = without free
+#    surface but with correction on amplitude and wave form. Note switch 2
+#    can only be used for receivers at the surface)
+# 2. switch for filtering waves with a shallow penetration depth (concerning
+#    their whole trace from source to receiver), penetration depth limit [km]
+#
+#    if this option is selected, waves whose travel path never exceeds the
+#    given depth limit will be filtered ("seismic nuting"). the condition for
+#    selecting this filter is that the given shallow path depth limit should
+#    be larger than both source and receiver depth.
+#
+# 3. number of depth ranges where the following selected up/down-sp2oing P or
+#    SV waves should be filtered
+# 4. the 1. depth range: upper and lower depth [km], switch for filtering P
+#    or SV wave in this depth range:
+#
+#    switch no:              1      2        3       4         other
+#    filtered phase:         P(up)  P(down)  SV(up)  SV(down)  Error
+#
+# 5. the 2. ...
+#
+#    The partial solution options are useful tools to increase the numerical
+#    significance of desired wave phases. Especially when the desired phases
+#    are smaller than the undesired phases, these options should be selected
+#    and carefully combined.
+#------------------------------------------------------------------------------
+ 0                            |int: isurf;
+ 0  0.0                     |int: sw_path_filter; dble:shallow_depth_limit;
+ 0                            |int: no_of_depth_ranges;
+# 2
+# 0.0 5153.0  3
+# 0.0 5153.0  4
+#------------------------------------------------------------------------------
+#
+#	SOURCE TIME FUNCTION (WAVELET) PARAMETERS (Note 3)
+#	==================================================
+# 1. wavelet duration [unit = time sample rather than sec!], that is about
+#    equal to the half-amplitude cut-off period of the wavelet (> 0. if <= 0,
+#    then default value = 2 time samples will be used), and switch for the
+#    wavelet form (0 = user's own wavelet; 1 = default wavelet: normalized
+#    square half-sinusoid for simulating a physical delta impulse; 2 = tapered
+#    Heaviside wavelet, i.e. integral of wavelet 1)
+# 2. IF user's own wavelet is selected, then number of the wavelet time samples
+#    (<= 1024), and followed by
+# 3. equidistant wavelet time samples
+# 4  ...(continue) (! no comment lines allowed between the time sample list!)
+#    IF default, delete line 2, 3, 4 ... or comment them out!
+#------------------------------------------------------------------------------
+ 4.0   1                         |int:dble: wavelet_duration; sw_wavelet;(利用cmt，需要x2)
+# 100                            |int: no_w_samples; below dble: w_samples;
+#  0.000  0.063  0.127  0.189  0.251  0.312  0.372  0.430  0.486  0.541
+#  0.593  0.643  0.690  0.735  0.776  0.815  0.850  0.881  0.910  0.934
+#  0.955  0.972  0.985  0.994  0.999  1.000  0.997  0.990  0.979  0.964
+#  0.945  0.922  0.896  0.866  0.833  0.796  0.756  0.713  0.667  0.618
+#  0.567  0.514  0.458  0.401  0.342  0.282  0.220  0.158  0.095  0.032
+# -0.032 -0.095 -0.158 -0.220 -0.282 -0.342 -0.401 -0.458 -0.514 -0.567
+# -0.618 -0.667 -0.713 -0.756 -0.796 -0.833 -0.866 -0.896 -0.922 -0.945
+# -0.964 -0.979 -0.990 -0.997 -1.000 -0.999 -0.994 -0.985 -0.972 -0.955
+# -0.934 -0.910 -0.881 -0.850 -0.815 -0.776 -0.735 -0.690 -0.643 -0.593
+# -0.541 -0.486 -0.430 -0.372 -0.312 -0.251 -0.189 -0.127 -0.063  0.000
+#------------------------------------------------------------------------------
+#
+#	 FILTER PARAMETERS OF RECEIVERS (SEISMOMETERS OR HYDROPHONES)
+#	 ============================================================
+# 1. constant coefficient (normalization factor)
+# 2. number of roots (<= nrootmax in qsglobal.h)
+# 3. list of the root positions in the complex format (Re,Im). If no roots,
+#    comment out this line
+# 4. number of poles (<= npolemax in qsglobal.h)
+# 5. list of the pole positions in the complex format (Re,Im). If no poles,
+#    comment out this line
+#------------------------------------------------------------------------------
+ 1.0
+ 0
+# (0.0, 0.0), (0.0, 0.0)
+ 0
+# (-4.35425, 4.44222), (-4.35425,-4.44222)
+#------------------------------------------------------------------------------
+#
+#	OUTPUT FILES FOR GREEN'S FUNCTIONS (Note 4)
+#	===========================================
+# 1. selections of source types (yes/no = 1/0)
+# 2. file names of Green's functions (please give the names without extensions,
+#    which will be appended by the program automatically: *.tz, *.tr, *.tt
+#    and *.tv are for the vertical, radial, tangential, and volume change (for
+#    hydrophones) components, respectively)
+#------------------------------------------------------------------------------
+#  explosion   strike-slip dip-slip   clvd       single_f_v  single_f_h
+#------------------------------------------------------------------------------
+   0           0           1          0          0           0         |int
+   'ex-2'      'ss-2'      '../ds-2'     'cl-2'     'fz-2'      'fh-2'    |char
+#------------------------------------------------------------------------------
+#	OUTPUT FILES FOR AN ARBITRARY POINT DISLOCATION SOURCE
+#               (for applications to earthquakes)
+#	======================================================
+# 1. selection (0 = not selected; 1 or 2 = selected), if (selection = 1), then
+#    the 6 moment tensor elements [N*m]: Mxx, Myy, Mzz, Mxy, Myz, Mzx (x is
+#    northward, y is eastward and z is downard); else if (selection = 2), then
+#    Mis [N*m] = isotropic (+/- = ex/inplosion) moment part, Mcl = CLVD moment
+#    part (with symmetric axis perpendicular to fault plane and determinant
+#    = 1/4), Mdc = double-couple part, Strike [deg], Dip [deg] and Rake [deg].
+#
+#    Note: to use this option, the Green's functions above should be computed
+#          (selection = 1) if they do not exist already. 
+#
+#                 north(x)
+#                  /
+#                 /\ strike
+#                *----------------------->  east(y)
+#                |\                       \ 
+#                |-\                       \ 
+#                |  \     fault plane       \ 
+#                |90 \                       \ 
+#                |-dip\                       \ 
+#                |     \                       \ 
+#                |      \                       \
+#           downward(z)  \-----------------------\
+#
+# 2. switch for azimuth distribution of the stations (0 = uniform azimuth,
+#    else = irregular azimuth angles)
+# 3. list of the azimuth angles [deg] for all stations given above (if the
+#    uniform azimuth is selected, then only one azimuth angle is required)
+#
+#------------------------------------------------------------------------------
+#     Mis        Mcl        Mdc        Strike     Dip        Rake      File
+#------------------------------------------------------------------------------
+# 2   0.00       0.00       6.0E+19    120.0      30.0       25.0      'seis-2'
+#------------------------------------------------------------------------------
+#     Mxx        Myy        Mzz        Mxy        Myz        Mzx       File
+#------------------------------------------------------------------------------
+  1  -0.36e+019 -5.12e+019  5.48e+019 -6.21e+019  2.40e+019 -3.84e+019 '../seis-2'
+  0
+  299.0
+#------------------------------------------------------------------------------
+#
+#	GLOBAL MODEL PARAMETERS (Note 5)
+#	================================
+# 1. switch for flat-earth-transform
+# 2. gradient resolution [%] of vp, vs, and ro (density), if <= 0, then default
+#    values (depending on wave length at cut-off frequency) will be used
+#------------------------------------------------------------------------------
+ 1                               |int: sw_flat_earth_transform;
+ 0.25  0.25  5.0                 |dble: vp_res, vs_res, ro_res;
+#------------------------------------------------------------------------------
+#
+#	                LAYERED EARTH MODEL
+#       (SHALLOW SOURCE + UNIFORM DEEP SOURCE/RECEIVER STRUCTURE)
+#	=========================================================
+# 1. number of data lines of the layered model (source site) 
+#------------------------------------------------------------------------------
+ 68                              |int: no_model_lines;
+#------------------------------------------------------------------------------
+#
+#	MULTILAYERED MODEL PARAMETERS (source site)(ak135)
+#	===========================================
+# no  depth[km]  vp[km/s]  vs[km/s]  ro[g/cm^3] qp      qs
+#------------------------------------------------------------------------------
+  1      0.000     5.8000     3.2000     2.6000    1478.30     599.99
+  2      3.300     5.8000     3.2000     2.6000    1478.30     599.99
+  3      3.300     5.8000     3.2000     2.6000    1478.30     599.99
+  4     10.000     5.8000     3.2000     2.6000    1478.30     599.99
+  5     10.000     6.8000     3.9000     2.9200    1368.02     599.99
+  6     18.000     6.8000     3.9000     2.9200    1368.02     599.99
+  7     18.000     8.0355     4.4839     3.6410     950.50     394.62
+  8     43.000     8.0379     4.4856     3.5801     972.77     403.93
+  9     80.000     8.0400     4.4800     3.5020    1008.71     417.59
+ 10     80.000     8.0450     4.4900     3.5020     182.03      75.60
+ 11    120.000     8.0505     4.5000     3.4268     182.57      76.06
+ 12    165.000     8.1750     4.5090     3.3711     188.72      76.55
+ 13    210.000     8.3007     4.5184     3.3243     200.97      79.40
+ 14    210.000     8.3007     4.5184     3.3243     338.47     133.72
+ 15    260.000     8.4822     4.6094     3.3663     346.37     136.38
+ 16    310.000     8.6650     4.6964     3.4110     355.85     139.38
+ 17    360.000     8.8476     4.7832     3.4577     366.34     142.76
+ 18    410.000     9.0302     4.8702     3.5068     377.93     146.57
+ 19    410.000     9.3601     5.0806     3.9317     413.66     162.50
+ 20    460.000     9.5280     5.1864     3.9273     417.32     164.87
+ 21    510.000     9.6962     5.2922     3.9233     419.94     166.80
+ 22    560.000     9.8640     5.3989     3.9218     422.55     168.78
+ 23    610.000    10.0320     5.5047     3.9206     425.51     170.82
+ 24    660.000    10.2000     5.6104     3.9201     428.69     172.93
+ 25    660.000    10.7909     5.9607     4.2387    1350.54     549.45
+ 26    710.000    10.9222     6.0898     4.2986    1311.17     543.48
+ 27    760.000    11.0553     6.2100     4.3565    1277.93     537.63
+ 28    809.500    11.1355     6.2424     4.4118    1269.44     531.91
+ 29    859.000    11.2228     6.2799     4.4650    1260.68     526.32
+ 30    908.500    11.3068     6.3164     4.5162    1251.69     520.83
+ 31    958.000    11.3897     6.3519     4.5654    1243.02     515.46
+ 32   1007.500    11.4704     6.3860     4.5926    1234.54     510.20
+ 33   1057.000    11.5493     6.4182     4.6198    1226.52     505.05
+ 34   1106.500    11.6265     6.4514     4.6467    1217.91     500.00
+ 35   1156.000    11.7020     6.4822     4.6735    1210.02     495.05
+ 36   1205.500    11.7768     6.5131     4.7001    1202.04     490.20
+ 37   1255.000    11.8491     6.5431     4.7266    1193.99     485.44
+ 38   1304.500    11.9208     6.5728     4.7528    1186.06     480.77
+ 39   1354.000    11.9891     6.6009     4.7790    1178.19     476.19
+ 40   1403.500    12.0571     6.6285     4.8050    1170.53     471.70
+ 41   1453.000    12.1247     6.6554     4.8307    1163.16     467.29
+ 42   1502.500    12.1912     6.6813     4.8562    1156.04     462.96
+ 43   1552.000    12.2558     6.7070     4.8817    1148.76     458.72
+ 44   1601.500    12.3181     6.7323     4.9069    1141.32     454.55
+ 45   1651.000    12.3813     6.7579     4.9321    1134.01     450.45
+ 46   1700.500    12.4427     6.7820     4.9570    1127.02     446.43
+ 47   1750.000    12.5030     6.8056     4.9817    1120.09     442.48
+ 48   1799.500    12.5638     6.8289     5.0062    1108.58     436.68
+ 49   1849.000    12.6226     6.8517     5.0306    1097.16     431.03
+ 50   1898.500    12.6807     6.8743     5.0548    1085.97     425.53
+ 51   1948.000    12.7384     6.8972     5.0789    1070.38     418.41
+ 52   1997.500    12.7956     6.9194     5.1027    1064.23     414.94
+ 53   2047.000    12.8524     6.9416     5.1264    1058.03     411.52
+ 54   2096.500    12.9093     6.9625     5.1499    1048.09     406.50
+ 55   2146.000    12.9663     6.9852     5.1732    1042.07     403.23
+ 56   2195.500    13.0226     7.0069     5.1963    1032.14     398.41
+ 57   2245.000    13.0786     7.0286     5.2192    1018.38     392.16
+ 58   2294.500    13.1337     7.0504     5.2420    1008.79     387.60
+ 59   2344.000    13.1895     7.0722     5.2646     999.44     383.14
+ 60   2393.500    13.2465     7.0932     5.2870     990.77     378.79
+ 61   2443.000    13.3017     7.1144     5.3092     985.63     375.94
+ 62   2492.500    13.3584     7.1368     5.3313     976.81     371.75
+ 63   2542.000    13.4156     7.1584     5.3531     968.46     367.65
+ 64   2591.500    13.4741     7.1804     5.3748     960.36     363.64
+ 65   2640.000    13.5311     7.2031     5.3962     952.00     359.71
+ 66   2690.000    13.5899     7.2253     5.4176     940.88     354.61
+ 67   2740.000    13.6498     7.2485     5.4387     933.21     350.88
+ 68   2740.000    13.6498     7.2485     5.6934     722.73     271.74
+# 69   2789.670    13.6533     7.2593     5.7196     726.87     273.97
+# 70   2839.330    13.6570     7.2700     5.7458     725.11     273.97
+# 71   2891.500    13.6601     7.2817     5.7721     723.12     273.97
+# 72   2891.500     8.0000     0.0000     9.9145   57822.00       0.00
+# 73   2939.330     8.0382     0.0000     9.9942   57822.00       0.00
+# 74   2989.660     8.1283     0.0000    10.0722   57822.00       0.00
+# 75   3039.990     8.2213     0.0000    10.1485   57822.00       0.00
+# 76   3090.320     8.3122     0.0000    10.2233   57822.00       0.00
+# 77   3140.660     8.4001     0.0000    10.2964   57822.00       0.00
+# 78   3190.990     8.4861     0.0000    10.3679   57822.00       0.00
+# 79   3241.320     8.5692     0.0000    10.4378   57822.00       0.00
+# 80   3291.650     8.6496     0.0000    10.5062   57822.00       0.00
+# 81   3341.980     8.7283     0.0000    10.5731   57822.00       0.00
+# 82   3392.310     8.8036     0.0000    10.6385   57822.00       0.00
+# 83   3442.640     8.8761     0.0000    10.7023   57822.00       0.00
+# 84   3492.970     8.9461     0.0000    10.7647   57822.00       0.00
+# 85   3543.300     9.0138     0.0000    10.8257   57822.00       0.00
+# 86   3593.640     9.0792     0.0000    10.8852   57822.00       0.00
+# 87   3643.970     9.1426     0.0000    10.9434   57822.00       0.00
+# 88   3694.300     9.2042     0.0000    11.0001   57822.00       0.00
+# 89   3744.630     9.2634     0.0000    11.0555   57822.00       0.00
+# 90   3794.960     9.3205     0.0000    11.1095   57822.00       0.00
+# 91   3845.290     9.3760     0.0000    11.1623   57822.00       0.00
+# 92   3895.620     9.4297     0.0000    11.2137   57822.00       0.00
+# 93   3945.950     9.4814     0.0000    11.2639   57822.00       0.00
+# 94   3996.280     9.5306     0.0000    11.3127   57822.00       0.00
+# 95   4046.620     9.5777     0.0000    11.3604   57822.00       0.00
+# 96   4096.950     9.6232     0.0000    11.4069   57822.00       0.00
+# 97   4147.280     9.6673     0.0000    11.4521   57822.00       0.00
+# 98   4197.610     9.7100     0.0000    11.4962   57822.00       0.00
+# 99   4247.940     9.7513     0.0000    11.5391   57822.00       0.00
+#100   4298.270     9.7914     0.0000    11.5809   57822.00       0.00
+#101   4348.600     9.8304     0.0000    11.6216   57822.00       0.00
+#102   4398.930     9.8682     0.0000    11.6612   57822.00       0.00
+#103   4449.260     9.9051     0.0000    11.6998   57822.00       0.00
+#104   4499.600     9.9410     0.0000    11.7373   57822.00       0.00
+#105   4549.930     9.9761     0.0000    11.7737   57822.00       0.00
+#106   4600.260    10.0103     0.0000    11.8092   57822.00       0.00
+#107   4650.590    10.0439     0.0000    11.8437   57822.00       0.00
+#108   4700.920    10.0768     0.0000    11.8772   57822.00       0.00
+#109   4751.250    10.1095     0.0000    11.9098   57822.00       0.00
+#110   4801.580    10.1415     0.0000    11.9414   57822.00       0.00
+#111   4851.910    10.1739     0.0000    11.9722   57822.00       0.00
+#112   4902.240    10.2049     0.0000    12.0001   57822.00       0.00
+#113   4952.580    10.2329     0.0000    12.0311   57822.00       0.00
+#114   5002.910    10.2565     0.0000    12.0593   57822.00       0.00
+#115   5053.240    10.2745     0.0000    12.0867   57822.00       0.00
+#116   5103.570    10.2854     0.0000    12.1133   57822.00       0.00
+#117   5153.500    10.2890     0.0000    12.1391   57822.00       0.00
+#118   5153.500    11.0427     3.5043    12.7037     633.26      85.03
+#119   5204.610    11.0585     3.5187    12.7289     629.89      85.03
+#120   5255.320    11.0718     3.5314    12.7530     626.87      85.03
+#121   5306.040    11.0850     3.5435    12.7760     624.08      85.03
+#122   5356.750    11.0983     3.5551    12.7980     621.50      85.03
+#123   5407.460    11.1166     3.5661    12.8188     619.71      85.03
+#124   5458.170    11.1316     3.5765    12.8387     617.78      85.03
+#125   5508.890    11.1457     3.5864    12.8574     615.93      85.03
+#126   5559.600    11.1590     3.5957    12.8751     614.21      85.03
+#127   5610.310    11.1715     3.6044    12.8917     612.62      85.03
+#128   5661.020    11.1832     3.6126    12.9072     611.12      85.03
+#129   5711.740    11.1941     3.6202    12.9217     609.74      85.03
+#130   5762.450    11.2041     3.6272    12.9351     608.48      85.03
+#131   5813.160    11.2134     3.6337    12.9474     607.31      85.03
+#132   5863.870    11.2219     3.6396    12.9586     606.26      85.03
+#133   5914.590    11.2295     3.6450    12.9688     605.28      85.03
+#134   5965.300    11.2364     3.6498    12.9779     604.44      85.03
+#135   6016.010    11.2424     3.6540    12.9859     603.69      85.03
+#136   6066.720    11.2477     3.6577    12.9929     603.04      85.03
+#137   6117.440    11.2521     3.6608    12.9988     602.49      85.03
+#138   6168.150    11.2557     3.6633    13.0036     602.05      85.03
+#139   6218.860    11.2586     3.6653    13.0074     601.70      85.03
+#140   6269.570    11.2606     3.6667    13.0100     601.46      85.03
+#141   6320.290    11.2618     3.6675    13.0117     601.32      85.03
+#142   6371.000    11.2622     3.6678    13.0122     601.27      85.03
+#------------------------------------------------------------------------------
+#
+#	          LAYERED EARTH MODEL（接收端的模型）
+#       (ONLY THE SHALLOW RECEIVER STRUCTURE)
+#       =====================================
+# 1. number of data lines of the layered model
+#
+#    Note: if the number = 0, then the receiver site is the same as the
+#          source site, else different receiver-site structure is considered.
+#          please be sure that the lowest interface of the receiver-site
+#          structure given given below can be found within the source-site
+#          structure, too.
+#
+#------------------------------------------------------------------------------
+ 0                               |int: no_model_lines;
+#------------------------------------------------------------------------------
+#
+#	MULTILAYERED MODEL PARAMETERS (shallow receiver-site structure)
+#	===============================================================
+# no  depth[km]    vp[km/s]    vs[km/s]   ro[g/cm^3]   qp      qs
+#------------------------------------------------------------------------------
+  1     0.000      2.900       1.676      2.600       92.00     41.00
+  2     2.000      2.900       1.676      2.600       92.00     41.00
+  3     2.000      5.400       3.121      2.600       92.00     41.00
+  4     7.000      5.400       3.121      2.600       92.00     41.00
+  5     7.000      6.160       3.561      2.600      576.00    256.00
+  6    17.000      6.160       3.561      2.600      576.00    256.00
+  7    17.000      6.630       3.832      2.900      576.00    256.00
+  8    35.000      6.630       3.832      2.900      576.00    256.00
+  9    35.000      8.0400      4.4700     3.3198    1340.00    600.00
+#---------------------------------end of all inputs----------------------------
+
+
+Note 1:
+
+The slowness is defined by inverse value of apparent wave velocity = sin(i)/v
+with i = incident angle and v = true wave velocity.
+
+Note 2:
+
+The suppression of the time domain aliasing is achieved by using the complex
+frequency technique. The suppression factor should be a value between 0 and 1.
+If this factor is set to 0.1, for example, the aliasing phase at the reduced
+time begin is suppressed to 10%.
+
+Note 3:
+
+The default basic wavelet function (option 1) is (2/tau)*sin^2(pi*t/tau),
+for 0 < t < tau, simulating physical delta impuls. Its half-amplitude cut-off
+frequency is 1/tau. To avoid high-frequency noise, tau should not be smaller
+than 4-5 time samples.
+
+Note 4:
+
+  Double-Couple   m11/ m22/ m33/ m12/ m23/ m31  Azimuth_Factor_(tz,tr,tv)/(tt)
+  ============================================================================
+  explosion       1.0/ 1.0/ 1.0/ -- / -- / --       1.0         /   0.0
+  strike-slip     -- / -- / -- / 1.0/ -- / --       sin(2*azi)  /   cos(2*azi)
+                  1.0/-1.0/ -- / -- / -- / --       cos(2*azi)  /  -sin(2*azi)
+  dip-slip        -- / -- / -- / -- / -- / 1.0      cos(azi)    /   sin(azi)
+                  -- / -- / -- / -- / 1.0/ --       sin(azi)    /  -cos(azi)
+  clvd           -0.5/-0.5/ 1.0/ -- / -- / --       1.0         /   0.0
+  ============================================================================
+  Single-Force    fx / fy / fz                  Azimuth_Factor_(tz,tr,tv)/(tt)
+  ============================================================================
+  fz              -- / -- / 1.0                        1.0      /   0.0
+  fx              1.0/ -- / --                         cos(azi) /   sin(azi)
+  fy              -- / 1.0/ --                         sin(azi) /  -cos(azi)
+  ============================================================================
+
+Note 5:
+
+Layers with a constant gradient will be discretized with a number of homogeneous
+sublayers. The gradient resolutions are then used to determine the maximum
+allowed thickness of the sublayers. If the resolutions of Vp, Vs and Rho
+(density) require different thicknesses, the smallest is first chosen. If this
+is even smaller than 1% of the characteristic wavelength, then the latter is
+taken finally for the sublayer thickness.
