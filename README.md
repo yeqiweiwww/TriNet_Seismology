@@ -1,4 +1,8 @@
-# Deep learning inversion of triplicated P waveforms to constrain the 660-km discontinuity
+# TriNet_Seismology
+
+## Paper Title
+
+Deep learning inversion of triplicated P waveforms to constrain the 660-km discontinuity
 
 ## Code Structure
 
