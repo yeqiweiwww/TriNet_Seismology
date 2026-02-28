@@ -1,0 +1,12 @@
+Event ID   Origin   Time   Location   Magnitude   Depth
+Empty Cell   Lat.   Lon.   PDE   CMT   Used
+Empty Cell   (deg.)   (Mw)   (km)
+20080519   19/05/2008   10:08:36.31   42.50   131.87   5.6   513   522   519a
+20090716   16/07/2009   06:29:04.76   42.37   133.00   5.3   477   485   477
+
+
+GCMT   Moment Tensor
+
+20080519   Expo=24  0.055 1.410 -1.460 1.290 -2.580 2.410 
+20090716   Expo=24  -0.013 0.761 -0.748 0.339 -0.524 -0.448 
+
